@@ -20,7 +20,7 @@ const TeacherSchema = new mongoose.Schema({
     unique: true
   },
   birthday: {
-    type: String,
+    type: Date,
     required: true
   },
   gender: {
