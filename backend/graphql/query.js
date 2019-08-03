@@ -25,6 +25,59 @@ const Student = require("../models/Student");
 const rootQuery = new GraphQLObjectType({
   name: "RootQueryType",
   fields: {
+    signup: {
+      type: teacherType,
+      args: {
+        firstName: { type: GraphQLString },
+        lastName: { type: GraphQLString },
+        email: { type: GraphQLString },
+        mobileNumber: { type: GraphQLString },
+        birthday: { type: GraphQLString },
+        gender: { type: GraphQLString },
+        password: { type: GraphQLString }
+      },
+      async resolve(parentValue, args) {
+        const teacher = new Teacher(args);
+        teacher.password = await bycrypt.hash(teacher.password, 12);
+        try {
+          const saved = await teacher.save();
+          return saved;
+        } catch (err) {
+          if (err.name === "MongoError" && err.code === 11000) {
+            // Duplicate username
+            throw new Error("Email or number already exists");
+          }
+        }
+      }
+    },
+    login: {
+      type: authType,
+      args: {
+        email: { type: GraphQLString },
+        password: { type: GraphQLString }
+      },
+      async resolve(parentValue, args) {
+        console.log("Login");
+        const user = await Teacher.findOne({ email: args.email });
+        if (!user) {
+          throw new Error("User does not exist!");
+        }
+        const isValid = await bycrypt.compare(args.password, user.password);
+        if (!isValid) {
+          throw new Error("Password is incorrect!");
+        }
+
+        //Correct entry for user
+        const token = jwt.sign(
+          { teacherId: user.id, email: user.email },
+          secret,
+          {
+            expiresIn: "1h"
+          }
+        );
+        return { userId: user.id, token: token, tokenExpiration: 1 };
+      }
+    },
     student: {
       type: studentType,
       args: {
@@ -47,50 +100,6 @@ const rootQuery = new GraphQLObjectType({
 const mutation = new GraphQLObjectType({
   name: "Mutation",
   fields: {
-    signup: {
-      type: teacherType,
-      args: {
-        firstName: { type: GraphQLString },
-        lastName: { type: GraphQLString },
-        email: { type: GraphQLString },
-        mobileNumber: { type: GraphQLString },
-        birthday: { type: GraphQLString },
-        gender: { type: GraphQLString },
-        password: { type: GraphQLString }
-      },
-      async resolve(parentValue, args) {
-        const teacher = new Teacher(args);
-        teacher.password = await bycrypt.hash(teacher.password, 12);
-        return teacher.save();
-      }
-    },
-    login: {
-      type: authType,
-      args: {
-        email: { type: GraphQLString },
-        password: { type: GraphQLString }
-      },
-      async resolve(parentValue, args) {
-        const user = await Teacher.findOne({ email: args.email });
-        if (!user) {
-          throw new Error("User does not exist!");
-        }
-        const isValid = await bycrypt.compare(args.password, user.password);
-        if (!isValid) {
-          throw new Error("Password is incorrect!");
-        }
-
-        //Correct entry for user
-        const token = jwt.sign(
-          { teacherId: user.id, email: user.email },
-          secret,
-          {
-            expiresIn: "1h"
-          }
-        );
-        return { userId: user.id, token: token, tokenExpiration: 1 };
-      }
-    },
     addStudent: {
       type: studentType,
       args: {
@@ -103,8 +112,8 @@ const mutation = new GraphQLObjectType({
         address: { type: GraphQLString }
       },
       resolve(parentValue, args, req) {
-        if (!req.isAuth){
-            throw new Error('Unauthenticated');
+        if (!req.isAuth) {
+          throw new Error("Unauthenticated");
         }
         const student = new Student({
           name: args.name,

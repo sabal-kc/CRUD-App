@@ -3,7 +3,7 @@ const mongoose = require("mongoose");
 const expressGraphQL = require("express-graphql");
 const bodyParser = require('body-parser');
 
-const schema = require("./graphql/schema");
+const schema = require("./graphql/query");
 const auth = require("./middlewares/auth");
 
 const PORT = process.env.PORT || 4000;
@@ -11,6 +11,17 @@ const PORT = process.env.PORT || 4000;
 const app = express();
 
 //Middlewares
+
+app.use((req, res, next) => {
+    res.setHeader('Access-Control-Allow-Origin', '*');
+    res.setHeader('Access-Control-Allow-Methods', 'POST,GET,OPTIONS');
+    res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization');
+    if (req.method === 'OPTIONS') {
+      return res.sendStatus(200);
+    }
+    next();
+  });
+  
 app.use(bodyParser.json());
 //Authentication middleware
 app.use(auth);

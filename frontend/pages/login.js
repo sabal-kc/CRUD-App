@@ -9,10 +9,18 @@ import LockOutlinedIcon from "@material-ui/icons/LockOutlined";
 import Typography from "@material-ui/core/Typography";
 import Container from "@material-ui/core/Container";
 
+import gql from "graphql-tag";
+import { Query } from "react-apollo";
+import Router from "next/router";
+
 export class LoginForm extends Component {
   state = {
     email: "",
-    password: ""
+    password: "",
+    emailError: false,
+    passwordError: false,
+    emailErrorText: "",
+    passwordErrorText: ""
   };
 
   handleChange = event => {
@@ -23,8 +31,47 @@ export class LoginForm extends Component {
 
   handleSubmit = event => {
     event.preventDefault();
+    if (this.state.email === "")
+      this.setState({
+        emailError: true,
+        emailErrorText: "Email cannot be empty"
+      });
     console.log(this.state);
-  }
+    let requestBody = {
+      query: `
+          query {
+            login(email: "${this.state.email.trim()}", password: "${this.state.password.trim()}") {
+              userId
+              token
+              tokenExpiration
+            }
+          }
+        `
+    };
+
+    fetch("http://localhost:4000/graphql", {
+      method: "POST",
+      body: JSON.stringify(requestBody),
+      headers: {
+        "Content-Type": "application/json"
+      }
+    })
+      .then(res => {
+        if (res.status !== 200 && res.status !== 201) {
+          throw new Error(res.statusText);
+        }
+        return res.json();
+      })
+      .then(resData => {
+        console.log(resData);
+        if (resData.data.login.token) {
+          Router.push("/home");
+        }
+      })
+      .catch(err => {
+        console.log(err);
+      });
+  };
   render() {
     const classes = {
       paper: {
@@ -66,12 +113,16 @@ export class LoginForm extends Component {
               id="email"
               label="Email Address"
               name="email"
+              error={this.state.emailError}
+              helperText={this.state.emailErrorText}
               autoComplete="email"
               autoFocus
             />
             <TextField
               value={this.state.password}
               onChange={this.handleChange}
+              error={this.state.passwordError}
+              helperText={this.state.passwordErrorText}
               variant="outlined"
               margin="normal"
               required
