@@ -45,6 +45,10 @@ app.use(
   })
 );
 
-app.get("/", (req, res) => res.send("Home"));
+app.get('/test',function(req,res,next){
+    res.render('test');
+});
+
+
 
 app.listen(PORT, () => console.log(`App running on ${PORT}`));

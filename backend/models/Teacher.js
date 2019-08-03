@@ -15,7 +15,7 @@ const TeacherSchema = new mongoose.Schema({
     unique: true
   },
   mobileNumber: {
-    type: Number,
+    type: String,
     required: true,
     unique: true
   },
@@ -25,8 +25,8 @@ const TeacherSchema = new mongoose.Schema({
   },
   gender: {
     type: String,
-    enum: ["Male", "Female", "Other"],
-    default: "Male",
+    enum: ["male", "female", "other"],
+    default: "male",
     required: true
   },
   password: {

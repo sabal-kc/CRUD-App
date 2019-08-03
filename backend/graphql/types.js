@@ -23,6 +23,7 @@ exports.studentType = new GraphQLObjectType({
   fields: () => ({
     id: { type: GraphQLID },
     name: { type: GraphQLString },
+    age: {type: GraphQLInt},
     class: { type: GraphQLString },
     rollNumber: { type: GraphQLString },
     phoneNumber: { type: GraphQLInt },

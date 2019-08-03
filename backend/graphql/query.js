@@ -47,6 +47,7 @@ const rootQuery = new GraphQLObjectType({
             // Duplicate username
             throw new Error("Email or number already exists");
           }
+          throw err;
         }
       }
     },
@@ -107,14 +108,14 @@ const mutation = new GraphQLObjectType({
         class: { type: GraphQLString },
         age: { type: GraphQLInt },
         rollNumber: { type: GraphQLString },
-        phoneNumber: { type: GraphQLInt },
+        phoneNumber: { type: GraphQLString },
         email: { type: GraphQLString },
         address: { type: GraphQLString }
       },
       resolve(parentValue, args, req) {
-        if (!req.isAuth) {
-          throw new Error("Unauthenticated");
-        }
+        // if (!req.isAuth) {
+        //   throw new Error("Unauthenticated");
+        // }
         const student = new Student({
           name: args.name,
           class: args.class,
@@ -130,26 +131,41 @@ const mutation = new GraphQLObjectType({
     deleteStudent: {
       type: studentType,
       args: {
-        id: { type: new GraphQLNonNull(GraphQLInt) }
+        id: { type: new GraphQLNonNull(GraphQLString) }
       },
-      resolve(parentValue, args) {
-        return "Hello";
+      async resolve(parentValue, args) {
+        const student = Student.findById(args.id);
+        return student.remove();
       }
     },
     editStudent: {
       type: studentType,
       args: {
-        id: { type: new GraphQLNonNull(GraphQLInt) },
+        id: { type: new GraphQLNonNull(GraphQLString) },
         name: { type: GraphQLString },
         class: { type: GraphQLString },
         age: { type: GraphQLInt },
         rollNumber: { type: GraphQLString },
-        phoneNumber: { type: GraphQLInt },
+        phoneNumber: { type: GraphQLString },
         email: { type: GraphQLString },
         address: { type: GraphQLString }
       },
       resolve(parentValue, args) {
-        return "Hello";
+        var newDetails;
+        Student.findById(args.id)
+          .then(model => {
+            Object.assign(model, args);
+          })
+          .then(model => {
+            model.save();
+          })
+          .then(updatedModel => {
+            newDetails = updatedModel;
+          })
+          .catch(err => {
+            throw err;
+          });
+        return newDetails;
       }
     }
   }

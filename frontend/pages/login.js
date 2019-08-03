@@ -3,7 +3,7 @@ import Avatar from "@material-ui/core/Avatar";
 import Button from "@material-ui/core/Button";
 import CssBaseline from "@material-ui/core/CssBaseline";
 import TextField from "@material-ui/core/TextField";
-import Link from "@material-ui/core/Link";
+import Link from "next/link";
 import Box from "@material-ui/core/Box";
 import LockOutlinedIcon from "@material-ui/icons/LockOutlined";
 import Typography from "@material-ui/core/Typography";
@@ -36,8 +36,7 @@ export class LoginForm extends Component {
         emailError: true,
         emailErrorText: "Email cannot be empty"
       });
-    console.log(this.state);
-    let requestBody = {
+    const requestBody = {
       query: `
           query {
             login(email: "${this.state.email.trim()}", password: "${this.state.password.trim()}") {
@@ -64,8 +63,21 @@ export class LoginForm extends Component {
       })
       .then(resData => {
         console.log(resData);
-        if (resData.data.login.token) {
+        if (resData.data.login && resData.data.login.token) {
+          this.setState({
+            emailError: false,
+            passwordError: false,
+            emailErrorText: "",
+            passwordErrorText: ""
+          });
           Router.push("/home");
+        } else if (resData.errors) {
+          console.log(resData.errors[0]);
+          this.setState({ emailError: true, passwordError: true });
+          this.setState({
+            emailErrorText: resData.errors[0].message,
+            passwordErrorText: resData.errors[0].message
+          });
         }
       })
       .catch(err => {
@@ -115,8 +127,7 @@ export class LoginForm extends Component {
               name="email"
               error={this.state.emailError}
               helperText={this.state.emailErrorText}
-              autoComplete="email"
-              autoFocus
+              //   autoComplete="email"
             />
             <TextField
               value={this.state.password}
@@ -131,7 +142,7 @@ export class LoginForm extends Component {
               label="Password"
               type="password"
               id="password"
-              autoComplete="current-password"
+              //   autoComplete="current-password"
             />
             <Button
               type="submit"
@@ -140,11 +151,11 @@ export class LoginForm extends Component {
               color="primary"
               style={classes.submit}
             >
-              Sign In
+              Login
             </Button>
 
-            <Link href="#" variant="body2">
-              {"Don't have an account? Sign Up"}
+            <Link href="/signup" variant="body2">
+              <a>{"Don't have an account? Sign Up"}</a>
             </Link>
           </form>
         </div>

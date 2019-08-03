@@ -1,28 +1,56 @@
 import React from "react";
-import LoginForm from "./login";
 import Link from "next/link";
-
+import Button from "@material-ui/core/Button";
+import Typography from "@material-ui/core/Typography";
 import ApolloClient from "apollo-boost";
 import { ApolloProvider, Mutation } from "react-apollo";
-
-global.fetch = require("node-fetch");
-
-const client = new ApolloClient({
-  uri: "http://localhost:4000/graphql"
-});
-
+import Container from "@material-ui/core/Container";
 function App() {
   return (
-    <ApolloProvider client={client}>
-      <div className="App">
+    <div
+      className="App"
+      style={{
+        position: "fixed",
+        top: "0",
+        left: "0",
+        right: "0",
+        bottom: "0",
+        backgroundImage: "url('../static/background2.jpg')",
+        backgroundSize: "100% 100%",
+        width: "auto%",
+        height: "100%"
+      }}
+    >
+      <Container component="main" maxWidth="md">
+        <Typography
+          component="h1"
+          variant="h3"
+          style={{
+            margin: "30px auto",
+            display: "block",
+            alignItems: "center"
+          }}
+        >
+          <p>Student Portal Management System</p>
+        </Typography>
         <Link href="/login">
-          <a>Login</a>
+          <Button
+            size="large"
+            variant="contained"
+            color="primary"
+            style={{ margin: "0 auto", display: "block" }}
+          >
+            <a>Get Started</a>
+          </Button>
         </Link>
-        <Link href="/signup">
-          <a>Signup</a>
-        </Link>
+        {/* <Link href="/signup">
+        <Button variant="contained">
       </div>
-    </ApolloProvider>
+          <a>Signup</a>
+        </Button>
+      </Link> */}
+      </Container>
+    </div>
   );
 }
 
