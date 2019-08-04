@@ -13,7 +13,7 @@ import InputLabel from "@material-ui/core/InputLabel";
 import MenuItem from "@material-ui/core/MenuItem";
 import FormControl from "@material-ui/core/FormControl";
 import Router from "next/router";
-export class signup extends Component {
+export class Signup extends Component {
   state = {
     email: "",
     password: "",
@@ -226,4 +226,4 @@ export class signup extends Component {
   }
 }
 
-export default signup;
+export default Signup;

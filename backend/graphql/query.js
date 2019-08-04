@@ -84,13 +84,19 @@ const rootQuery = new GraphQLObjectType({
       args: {
         id: { type: GraphQLID }
       },
-      resolve(parentValue, args) {
+      resolve(parentValue, args, req) {
+        if (!req.isAuth) {
+          throw new Error("Unauthenticated");
+        }
         return Student.findById(args.id);
       }
     },
     students: {
       type: new GraphQLList(studentType),
-      resolve(parentValue, args) {
+      resolve(parentValue, args, req) {
+        if (!req.isAuth) {
+          throw new Error("Unauthenticated");
+        }
         return Student.find({});
       }
     }
@@ -113,9 +119,9 @@ const mutation = new GraphQLObjectType({
         address: { type: GraphQLString }
       },
       resolve(parentValue, args, req) {
-        // if (!req.isAuth) {
-        //   throw new Error("Unauthenticated");
-        // }
+        if (!req.isAuth) {
+          throw new Error("Unauthenticated");
+        }
         const student = new Student({
           name: args.name,
           class: args.class,
@@ -133,7 +139,10 @@ const mutation = new GraphQLObjectType({
       args: {
         id: { type: new GraphQLNonNull(GraphQLString) }
       },
-      async resolve(parentValue, args) {
+      async resolve(parentValue, args, req) {
+        if (!req.isAuth) {
+          throw new Error("Unauthenticated");
+        }
         const student = Student.findById(args.id);
         return student.remove();
       }
@@ -150,22 +159,14 @@ const mutation = new GraphQLObjectType({
         email: { type: GraphQLString },
         address: { type: GraphQLString }
       },
-      resolve(parentValue, args) {
+      resolve(parentValue, args, req) {
+        if (!req.isAuth) {
+          throw new Error("Unauthenticated");
+        }
         var newDetails;
-        Student.findById(args.id)
-          .then(model => {
-            Object.assign(model, args);
-          })
-          .then(model => {
-            model.save();
-          })
-          .then(updatedModel => {
-            newDetails = updatedModel;
-          })
-          .catch(err => {
-            throw err;
-          });
-        return newDetails;
+        Student.findOneAndUpdate({ _id: args.id }, args, function(err, place) {
+          return place;
+        });
       }
     }
   }

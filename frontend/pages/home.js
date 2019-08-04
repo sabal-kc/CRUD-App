@@ -10,16 +10,18 @@ import Button from "@material-ui/core/Button";
 import Typography from "@material-ui/core/Typography";
 import Link from "next/link";
 import Router from "next/router";
-import Dialog from '@material-ui/core/Dialog';
-import DialogActions from '@material-ui/core/DialogActions';
-import DialogContent from '@material-ui/core/DialogContent';
-import DialogContentText from '@material-ui/core/DialogContentText';
-import DialogTitle from '@material-ui/core/DialogTitle';
+import Dialog from "@material-ui/core/Dialog";
+import DialogActions from "@material-ui/core/DialogActions";
+import DialogContent from "@material-ui/core/DialogContent";
+import DialogContentText from "@material-ui/core/DialogContentText";
+import DialogTitle from "@material-ui/core/DialogTitle";
 
+import AuthErrorPage from "./AuthErrorPage";
 export default class Home extends React.Component {
   state = {
     tableRows: [],
     dialogOpen: false,
+    authError: false
   };
 
   createData = (id, rollNumber, name, classRoom, email) => {
@@ -41,10 +43,12 @@ export default class Home extends React.Component {
       `
     };
     let tableRows = [];
+    const token = "Bearer " + window.localStorage.getItem("token");
     fetch("http://localhost:4000/graphql", {
       method: "POST",
       body: JSON.stringify(requestBody),
       headers: {
+        Authorization: token,
         "Content-Type": "application/json"
       }
     })
@@ -55,6 +59,12 @@ export default class Home extends React.Component {
         return res.json();
       })
       .then(resData => {
+        if (resData.errors) {
+          this.setState({ authError: true });
+          return;
+        } else {
+          this.setState({ authError: false });
+        }
         resData.data.students.forEach(element => {
           tableRows.push(
             this.createData(
@@ -82,15 +92,17 @@ export default class Home extends React.Component {
           }
         `
     };
+    const token = "Bearer " + window.localStorage.getItem("token");
     fetch("http://localhost:4000/graphql", {
       method: "POST",
       body: JSON.stringify(requestBody),
       headers: {
+        Authorization: token,
         "Content-Type": "application/json"
       }
     }).then(res => {
       console.log(res);
-      this.setState({dialogOpen: false});
+      this.setState({ dialogOpen: false });
       this.fetchStudentData();
     });
   };
@@ -100,24 +112,34 @@ export default class Home extends React.Component {
   };
 
   handleClickOpen = () => {
-    this.setState({dialogOpen: true});
-}
+    this.setState({ dialogOpen: true });
+  };
 
-handleClose = ()=> {
-    this.setState({dialogOpen: false});
-  }
+  handleClose = () => {
+    this.setState({ dialogOpen: false });
+  };
 
+  handleLogOut = () => {
+    window.localStorage.removeItem("token");
+    Router.push({ pathname: "/login" });
+  };
   componentDidMount() {
     this.fetchStudentData();
   }
   render() {
-    return (
+    return this.state.authError ? (
+      <AuthErrorPage />
+    ) : (
       <Paper>
         <Link href="/addStudent">
           <Button fullWidth variant="contained" color="primary">
             <a>Add student</a>
           </Button>
         </Link>
+
+        <Button fullWidth variant="contained" onClick={this.handleLogOut}>
+          <a>Logout</a>
+        </Button>
 
         <Typography
           component="h1"
@@ -179,10 +201,18 @@ handleClose = ()=> {
                         </DialogContentText>
                       </DialogContent>
                       <DialogActions>
-                        <Button id= {row.id} onClick={this.handleOnDelete} color="primary">
+                        <Button
+                          id={row.id}
+                          onClick={this.handleOnDelete}
+                          color="primary"
+                        >
                           Yes
                         </Button>
-                        <Button onClick={this.handleClose} color="primary" autoFocus>
+                        <Button
+                          onClick={this.handleClose}
+                          color="primary"
+                          autoFocus
+                        >
                           No
                         </Button>
                       </DialogActions>

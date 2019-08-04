@@ -1,5 +1,5 @@
 import React, { Component } from 'react'
-import AddStudent from './addStudent';
+import AddStudent from './AddStudent';
 import { withRouter } from 'next/router'
 
 class Update extends Component {

@@ -29,7 +29,8 @@ app.use(auth);
 mongoose
   .connect("mongodb://localhost/studentPortalData", {
       useCreateIndex: true,
-    useNewUrlParser: true
+    useNewUrlParser: true,
+    useFindAndModify: false
   })
   .then(() => console.log("MongoDB connected"))
   .catch(err => console.log(err));
@@ -45,9 +46,6 @@ app.use(
   })
 );
 
-app.get('/test',function(req,res,next){
-    res.render('test');
-});
 
 
 

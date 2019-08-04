@@ -64,6 +64,7 @@ export class LoginForm extends Component {
       .then(resData => {
         console.log(resData);
         if (resData.data.login && resData.data.login.token) {
+            window.localStorage.setItem('token', resData.data.login.token);
           this.setState({
             emailError: false,
             passwordError: false,

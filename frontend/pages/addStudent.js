@@ -13,6 +13,7 @@ import InputLabel from "@material-ui/core/InputLabel";
 import MenuItem from "@material-ui/core/MenuItem";
 import FormControl from "@material-ui/core/FormControl";
 import Router from "next/router";
+import AuthErrorPage from "./AuthErrorPage";
 export class AddStudent extends Component {
   state = {
     name: "",
@@ -24,7 +25,8 @@ export class AddStudent extends Component {
     address: "",
     error: false,
     errorMsg: "",
-    buttonName: "Register"
+    buttonName: "Register",
+    authError: false
   };
 
   handleChange = event => {
@@ -40,6 +42,12 @@ export class AddStudent extends Component {
   };
 
   componentDidMount() {
+    if (!window.localStorage.getItem("token")) {
+      this.setState({ authError: true });
+      return;
+    } else {
+      this.setState({ authError: false });
+    }
     if (this.props.flag && this.props.flag === "edit") {
       const id = this.props.id;
       const requestBody = {
@@ -58,10 +66,12 @@ export class AddStudent extends Component {
             }
         `
       };
+      const token = "Bearer " + window.localStorage.getItem("token");
       fetch("http://localhost:4000/graphql", {
         method: "POST",
         body: JSON.stringify(requestBody),
         headers: {
+          Authorization: token,
           "Content-Type": "application/json"
         }
       })
@@ -72,6 +82,12 @@ export class AddStudent extends Component {
           return res.json();
         })
         .then(resData => {
+          if (resData.errors) {
+            this.setState({ authError: true });
+            return;
+          } else {
+            this.setState({ authError: false });
+          }
           const currentStudent = resData.data.student;
           this.setState({
             name: currentStudent.name,
@@ -140,10 +156,12 @@ export class AddStudent extends Component {
       };
     }
     console.log(JSON.stringify(requestBody));
+    const token = "Bearer " + window.localStorage.getItem("token");
     fetch("http://localhost:4000/graphql", {
       method: "POST",
       body: JSON.stringify(requestBody),
       headers: {
+        Authorization: token,
         "Content-Type": "application/json"
       }
     })
@@ -154,8 +172,17 @@ export class AddStudent extends Component {
         return res.json();
       })
       .then(resData => {
+        if (resData.errors) {
+          this.setState({ authError: true });
+          return;
+        } else {
+          this.setState({ authError: false });
+        }
         console.log(resData);
-        if ((resData.data.addStudent && resData.data.addStudent.id) ||(resData.data)){
+        if (
+          (resData.data.addStudent && resData.data.addStudent.id) ||
+          resData.data
+        ) {
           Router.push("/home");
         } else if (resData.errors) {
           this.setState({
@@ -188,7 +215,9 @@ export class AddStudent extends Component {
         marginBottom: "10px"
       }
     };
-    return (
+    return this.state.authError ? (
+      <AuthErrorPage />
+    ) : (
       <Container component="main" maxWidth="xs">
         <CssBaseline />
         <div style={classes.paper} className={classes.root}>
@@ -303,7 +332,7 @@ export class AddStudent extends Component {
               color="primary"
               style={classes.submit}
             >
-             {this.state.buttonName}
+              {this.state.buttonName}
             </Button>
           </form>
         </div>
