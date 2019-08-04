@@ -1,4 +1,4 @@
-# Programming Task - Student portal management
+# Programming Task
 
 ## Installing
 The following steps can be followed to use the system.
