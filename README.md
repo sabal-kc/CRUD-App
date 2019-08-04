@@ -23,3 +23,5 @@ npm install
 npm run dev
 ```
 
+Backend graphql server: http://localhost:4000/graphql
+Frontend: http://localhost:3000/
